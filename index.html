@@ -550,14 +550,17 @@ table.lot-table td:nth-child(2){text-align:right;font-weight:700;color:var(--ink
       <p style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">一次一個帳本：露營、聚餐、出遊各開一個，成員與發票各自獨立。</p>
       <div id="act-list"></div>
       <div class="section-title">➕ 新活動</div>
-      <form id="act-form" style="display:flex;gap:8px;margin-top:6px;">
-        <select id="af-emoji" aria-label="圖示" style="padding:9px 6px;border-radius:10px;border:1px solid var(--line);font-size:16px;background:#fff;">
-          <option>🏕️</option><option>🍜</option><option>✈️</option><option>🎉</option>
-          <option>⚽</option><option>🛒</option><option>💼</option><option>🎓</option>
-        </select>
-        <input id="af-name" placeholder="活動名稱（例：中秋聚餐）" required maxlength="20" style="flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;">
-        <button class="btn primary" type="submit">建立</button>
-      </form>
+      <div style="background:#f6f8fc;border:1px dashed var(--line);border-radius:12px;padding:10px;margin-top:6px;">
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">選圖示 → 填名稱 → 建立</div>
+        <form id="act-form" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <select id="af-emoji" aria-label="圖示" title="活動圖示" style="padding:9px 10px;border-radius:10px;border:1px solid var(--line);font-size:16px;background:#fff;min-width:52px;">
+            <option>🏕️</option><option>🍜</option><option>✈️</option><option>🎉</option>
+            <option>⚽</option><option>🛒</option><option>💼</option><option>🎓</option>
+          </select>
+          <input id="af-name" placeholder="活動名稱（例：中秋聚餐）" required maxlength="20" style="flex:1;min-width:140px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;">
+          <button class="btn primary" type="submit">建立</button>
+        </form>
+      </div>
     </div>
   </div>
 
