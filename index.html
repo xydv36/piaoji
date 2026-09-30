@@ -222,7 +222,7 @@ table.lot-table td:nth-child(2){text-align:right;font-weight:700;color:var(--ink
     <div class="logo">🧾</div>
     <div id="btn-activity" style="cursor:pointer;" title="切換活動">
       <h1>票記 InvoiceSync</h1>
-      <div class="sub" id="appbar-sub">🏕️ 週末露營團 · 4 位成員 ▾</div>
+      <div class="sub" id="appbar-sub">📒 2026年9月 · 1 位成員 ▾</div>
     </div>
     <button id="btn-install" title="安裝為 APP" style="display:none;margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:10px;font-size:17px;cursor:pointer;">⤓</button>
     <div class="avatar-stack" id="appbar-avs"></div>
@@ -547,7 +547,7 @@ table.lot-table td:nth-child(2){text-align:right;font-weight:700;color:var(--ink
   <div class="backdrop" id="modal-activity">
     <div class="sheet">
       <h3>📂 活動 <button class="close-x" data-close>✕</button></h3>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">一次一個帳本：露營、聚餐、出遊各開一個，成員與發票各自獨立。</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;">每個活動是獨立帳本（成員、發票、記帳互不混），可隨時切換。預設以「年＋月」命名。</p>
       <div id="act-list"></div>
       <div class="section-title">➕ 新活動</div>
       <div style="background:#f6f8fc;border:1px dashed var(--line);border-radius:12px;padding:10px;margin-top:6px;">
@@ -625,10 +625,18 @@ function saveApp(){ try{ localStorage.setItem(APP_KEY, JSON.stringify({activitie
 function loadApp(){
   try{
     const d=JSON.parse(localStorage.getItem(APP_KEY));
-    if(d && Array.isArray(d.activities) && d.activities.length){ activities=d.activities; currentActId=d.currentId||d.activities[0].id; return true; }
+    if(d && Array.isArray(d.activities) && d.activities.length){
+      activities=d.activities; currentActId=d.currentId||d.activities[0].id;
+      // 遷移：舊版預設名「週末露營團」→ 當年當月（例：2026年9月）
+      const _n=new Date(), _def=`${_n.getFullYear()}年${_n.getMonth()+1}月`; let renamed=false;
+      activities.forEach(a=>{ if(a.id==='a-default'&&a.name==='週末露營團'){ a.name=_def; a.emoji='📒'; renamed=true; } });
+      if(renamed) saveApp();
+      return true;
+    }
   }catch(e){}
-  // 首次使用：建立預設活動，並把舊版單一帳本資料遷移過來
-  activities=[{id:'a-default',name:'週末露營團',emoji:'🏕️'}]; currentActId='a-default';
+  // 首次使用：建立預設活動（名稱＝當年當月），並把舊版單一帳本資料遷移過來
+  const _n=new Date(), _def=`${_n.getFullYear()}年${_n.getMonth()+1}月`;
+  activities=[{id:'a-default',name:_def,emoji:'📒'}]; currentActId='a-default';
   const legacy=localStorage.getItem('piaoji_v2');
   if(legacy) localStorage.setItem(actKey(),legacy);
   saveApp(); return false;
@@ -1545,7 +1553,8 @@ const Cloud={
       if(!r.data) throw new Error('找不到邀請碼 '+code.toUpperCase()+' 對應的群組');
       group=r.data;
     }else{
-      const r=await this.client.from('groups').insert({name:groupName||'新群組',code:genCode()}).select().single();
+      const now=new Date(), defName=`${now.getFullYear()}年${now.getMonth()+1}月`;   // 內定當年當月（例：2026年9月）
+      const r=await this.client.from('groups').insert({name:(groupName&&groupName.trim())||defName,code:genCode()}).select().single();
       if(r.error) throw new Error('建立群組失敗：'+r.error.message);
       group=r.data;
     }
