@@ -20,9 +20,10 @@ async function parsePeriod(url){
   return {special,grand,first};
 }
 
-exports.handler=async (req,res)=>{
+// Netlify Node runtime: handler(event) → return {statusCode, headers, body}
+exports.handler=async (event)=>{
   const cors={'Access-Control-Allow-Origin':'*','Content-Type':'application/json; charset=utf-8'};
-  if(req.method==='OPTIONS'){ res.writeHead(204,cors); return res.end(); }
+  if(event.httpMethod==='OPTIONS'){ return {statusCode:204,headers:cors,body:''}; }
   try{
     const html=await fetchText(LIST_URL);
     // rows: <a href="/singlehtml/ch26?cntId=XXX" title='115年7-8月期統一發票中獎號碼'>…</a> … <span>115-09-25</span>
@@ -36,13 +37,12 @@ exports.handler=async (req,res)=>{
     }
     const out={source:LIST_URL,fetchedAt:new Date().toISOString(),periods:{}};
     // only fetch detail pages for the periods the client asked for (max 5); 'latest' = newest period in list
-    let want=(req.query.keys||'').split(',').filter(k=>found.some(f=>f.key===k)).slice(0,5);
-    if((req.query.keys||'').includes('latest')) want=[...new Set([found[0]&&found[0].key,...want])].filter(Boolean).slice(0,5);
+    const keys=(event.queryStringParameters||{}).keys||'';
+    let want=keys.split(',').filter(k=>found.some(f=>f.key===k)).slice(0,5);
+    if(keys.includes('latest')) want=[...new Set([found[0]&&found[0].key,...want])].filter(Boolean).slice(0,5);
     for(const f of found){ if(want.includes(f.key)) out.periods[f.key]=await parsePeriod(f.url); }
-    res.writeHead(200,cors);
-    res.end(JSON.stringify({...out,available:found}));
+    return {statusCode:200,headers:cors,body:JSON.stringify({...out,available:found})};
   }catch(e){
-    res.writeHead(502,cors);
-    res.end(JSON.stringify({error:String(e.message||e)}));
+    return {statusCode:502,headers:cors,body:JSON.stringify({error:String(e.message||e)})};
   }
 };
